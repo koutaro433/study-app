@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>学習管理アプリ</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f3;}
+
+/* ===== レイアウト ===== */
+.app{display:flex;flex-direction:column;min-height:100vh;}
+.main{flex:1;padding:16px;max-width:900px;margin:0 auto;width:100%;}
+
+/* ===== ボトムナビ（スマホ） ===== */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:0.5px solid rgba(0,0,0,0.12);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom);}
+.bottom-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 6px;cursor:pointer;color:#999;font-size:10px;gap:3px;transition:color .15s;}
+.bottom-nav-item.active{color:#1D9E75;}
+.bottom-nav-item svg{width:22px;height:22px;}
+
+/* PC用サイドバー */
+@media(min-width:700px){
+  .app{flex-direction:row;height:100vh;overflow:hidden;}
+  .bottom-nav{display:none;}
+  .sidebar{width:180px;flex-shrink:0;background:#fff;border-right:0.5px solid rgba(0,0,0,0.1);padding:16px 0;display:flex;flex-direction:column;overflow-y:auto;}
+  .main{padding:24px;overflow-y:auto;margin:0;}
+}
+.sidebar{display:none;}
+@media(min-width:700px){.sidebar{display:flex;}}
+
+.nav-item{padding:9px 16px;cursor:pointer;font-size:13px;color:#666;display:flex;align-items:center;gap:8px;transition:background .1s;}
+.nav-item:hover{background:#f5f5f3;}
+.nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:500;border-right:2px solid #1D9E75;}
+.nav-section{font-size:11px;color:#aaa;padding:12px 16px 4px;letter-spacing:.05em;}
+
+/* ===== ページ ===== */
+.page{display:none;padding-bottom:80px;}
+.page.active{display:block;}
+@media(min-width:700px){.page{padding-bottom:0;}}
+
+/* ===== 共通 ===== */
+.page-title{font-size:18px;font-weight:600;margin-bottom:16px;}
+@media(min-width:700px){.page-title{font-size:20px;}}
+
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap;}
+
+.btn{padding:8px 14px;border-radius:10px;border:0.5px solid #ddd;background:#fff;color:#1a1a1a;font-size:13px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;}
+.btn:active{opacity:.7;}
+.btn-primary{background:#1D9E75;color:#fff;border-color:#1D9E75;}
+.btn-danger{color:#A32D2D;border-color:#F09595;background:#fff;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+
+/* ===== カード ===== */
+.card{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;border:0.5px solid rgba(0,0,0,0.08);}
+.card-title{font-size:14px;font-weight:600;margin-bottom:5px;}
+.card-meta{font-size:12px;color:#888;display:flex;gap:10px;flex-wrap:wrap;}
+
+/* ===== stat ===== */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;}
+@media(min-width:500px){.stat-grid{grid-template-columns:repeat(4,1fr);}}
+.stat-card{background:#fff;border-radius:12px;padding:12px 14px;border:0.5px solid rgba(0,0,0,0.08);}
+.stat-label{font-size:11px;color:#999;margin-bottom:3px;}
+.stat-val{font-size:20px;font-weight:600;}
+.stat-unit{font-size:11px;color:#888;margin-left:2px;}
+
+/* ===== テーブル（PC向け） ===== */
+.table-wrap{overflow-x:auto;border-radius:12px;border:0.5px solid rgba(0,0,0,0.08);background:#fff;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px;}
+th{text-align:left;padding:10px 12px;font-weight:500;font-size:12px;color:#888;border-bottom:0.5px solid rgba(0,0,0,0.08);}
+td{padding:10px 12px;border-bottom:0.5px solid rgba(0,0,0,0.06);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafaf9;}
+
+/* ===== フォーム ===== */
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:12px;color:#888;margin-bottom:5px;font-weight:500;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:0.5px solid #ddd;border-radius:10px;background:#fff;color:#1a1a1a;font-size:14px;font-family:inherit;-webkit-appearance:none;appearance:none;}
+.form-group textarea{resize:vertical;min-height:60px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* ===== モーダル ===== */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+@media(min-width:600px){.overlay{align-items:center;}}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));width:100%;max-height:92vh;overflow-y:auto;}
+@media(min-width:600px){.modal{border-radius:16px;width:520px;max-height:88vh;padding:24px;}}
+.modal-handle{width:36px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 16px;}
+@media(min-width:600px){.modal-handle{display:none;}}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:16px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+
+/* ===== 科目ピッカー ===== */
+.subj-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+.subj-btn{padding:12px 4px;border-radius:10px;border:1.5px solid #eee;background:#f9f9f7;color:#666;font-size:12px;cursor:pointer;text-align:center;font-family:inherit;-webkit-tap-highlight-color:transparent;}
+.subj-btn.sel{font-weight:600;}
+
+/* ===== 週間計画 ===== */
+.subj-row{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:#fff;border-radius:14px;margin-bottom:8px;border:0.5px solid rgba(0,0,0,0.08);}
+.subj-info{flex:1;min-width:0;}
+.progress-bar{height:4px;background:#eee;border-radius:2px;margin-top:6px;}
+.progress-fill{height:4px;background:#1D9E75;border-radius:2px;}
+.detail-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.back-btn{font-size:13px;color:#888;cursor:pointer;padding:6px 10px;border-radius:8px;background:#f5f5f3;-webkit-tap-highlight-color:transparent;}
+
+/* ===== カレンダー ===== */
+.cal-nav{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.cal-nav-title{font-size:15px;font-weight:600;flex:1;text-align:center;}
+.cal-grid-hdr{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-dh{text-align:center;font-size:11px;color:#aaa;padding:3px 0;}
+.cal-day{min-height:64px;border:0.5px solid rgba(0,0,0,0.08);border-radius:8px;padding:4px;cursor:pointer;background:#fff;-webkit-tap-highlight-color:transparent;}
+.cal-day:active{opacity:.7;}
+.cal-day.today{border-color:#1D9E75;border-width:1.5px;}
+.cal-day.other{opacity:.45;background:#f9f9f7;}
+.cal-day.selected{background:#E1F5EE;border-color:#1D9E75;}
+.cal-date-num{font-size:11px;color:#aaa;margin-bottom:2px;}
+.cal-date-num.td{background:#1D9E75;color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.cal-ev{font-size:9px;padding:1px 3px;border-radius:3px;margin-bottom:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;}
+@media(min-width:500px){.cal-ev{font-size:10px;}}
+.day-panel{background:#fff;border-radius:14px;padding:14px;margin-top:10px;border:0.5px solid rgba(0,0,0,0.08);}
+.ev-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9f9f7;border-radius:10px;margin-bottom:6px;border-left:3px solid;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.ev-row:active{opacity:.7;}
+.ev-time{font-size:12px;color:#888;min-width:80px;flex-shrink:0;}
+@media(min-width:500px){.ev-time{min-width:96px;}}
+.ev-name{font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ev-meta{font-size:11px;color:#aaa;}
+
+/* ===== 履歴 ===== */
+.hist-card{background:#f9f9f7;border:0.5px solid rgba(0,0,0,0.08);border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.hist-card:active{opacity:.7;}
+
+/* ===== バッジ ===== */
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;white-space:nowrap;}
+.bg-green{background:#E1F5EE;color:#0F6E56;}
+.bg-blue{background:#E6F1FB;color:#185FA5;}
+.bg-gray{background:#F1EFE8;color:#5F5E5A;}
+.bg-coral{background:#FAECE7;color:#993C1D;}
+.bg-amber{background:#FAEEDA;color:#854F0B;}
+.empty{text-align:center;padding:32px;color:#aaa;font-size:13px;}
+
+.sec-title{font-size:11px;font-weight:600;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin:14px 0 8px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- PC用サイドバー -->
+<div class="sidebar">
+  <div style="padding:16px 16px 10px;font-size:15px;font-weight:700;">📚 学習管理</div>
+  <div class="nav-section">管理</div>
+  <div class="nav-item active" id="snav-master" onclick="nav('master')">📚 参考書</div>
+  <div class="nav-section">計画</div>
+  <div class="nav-item" id="snav-weekly" onclick="nav('weekly')">📋 週間計画</div>
+  <div class="nav-item" id="snav-calendar" onclick="nav('calendar')">📅 カレンダー</div>
+</div>
+
+<!-- メインコンテンツ -->
+<div class="main">
+
+<!-- 参考書 -->
+<div class="page active" id="page-master">
+  <div class="toolbar">
+    <div class="page-title">参考書マスター</div>
+    <button class="btn btn-primary" onclick="openStep1(null)">+ 追加</button>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">登録冊数</div><div class="stat-val" id="st-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">進行中</div><div class="stat-val" id="st-prog">0</div></div>
+    <div class="stat-card"><div class="stat-label">完了</div><div class="stat-val" id="st-done">0</div></div>
+    <div class="stat-card"><div class="stat-label">未着手</div><div class="stat-val" id="st-yet">0</div></div>
+  </div>
+  <!-- スマホ：カード表示 -->
+  <div id="book-cards" class="book-card-list"></div>
+  <!-- PC：テーブル表示 -->
+  <div class="table-wrap" id="book-table-wrap" style="display:none;">
+    <table><thead><tr><th>書名</th><th>科目</th><th>ステータス</th><th>優先度</th><th>総ページ</th><th>周回</th><th>目標完了日</th><th></th></tr></thead>
+    <tbody id="book-tb"></tbody></table>
+  </div>
+</div>
+
+<!-- 週間計画 -->
+<div class="page" id="page-weekly">
+  <div id="wk-list-view">
+    <div class="toolbar">
+      <div class="page-title">週間計画</div>
+      <button class="btn btn-primary" onclick="openModal('modal-week')">+ 週を追加</button>
+    </div>
+    <div id="wk-cards"></div>
+  </div>
+  <div id="wk-detail-view" style="display:none;">
+    <div class="detail-header">
+      <span class="back-btn" onclick="showWkList()">← 一覧</span>
+      <div style="font-size:16px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="wk-dtitle"></div>
+      <button class="btn btn-sm btn-primary" onclick="openAddSubj()">+ 科目</button>
+    </div>
+    <div id="wk-dmeta" style="font-size:12px;color:#888;margin-bottom:12px;"></div>
+    <div class="stat-grid" id="wk-stats"></div>
+    <div class="sec-title">科目別計画</div>
+    <div id="subj-list"></div>
+  </div>
+</div>
+
+<!-- カレンダー -->
+<div class="page" id="page-calendar">
+  <div class="toolbar" style="margin-bottom:8px;">
+    <div class="page-title">カレンダー</div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-sm" onclick="openOtherModal(null,null)">+ その他</button>
+      <button class="btn btn-sm btn-primary" onclick="openEvModal(null,null)">+ 学習</button>
+    </div>
+  </div>
+  <div class="cal-nav">
+    <button class="btn btn-sm" onclick="chMonth(-1)">←</button>
+    <div class="cal-nav-title" id="cal-title"></div>
+    <button class="btn btn-sm" onclick="chMonth(1)">→</button>
+    <button class="btn btn-sm" onclick="goToday()">今日</button>
+  </div>
+  <div class="cal-grid-hdr">
+    <div class="cal-dh" style="color:#E24B4A;">日</div>
+    <div class="cal-dh">月</div><div class="cal-dh">火</div><div class="cal-dh">水</div>
+    <div class="cal-dh">木</div><div class="cal-dh">金</div>
+    <div class="cal-dh" style="color:#378ADD;">土</div>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div id="day-panel" style="display:none;"></div>
+</div>
+
+</div><!-- /main -->
+
+<!-- スマホ ボトムナビ -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-item active" id="bnav-master" onclick="nav('master')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    参考書
+  </div>
+  <div class="bottom-nav-item" id="bnav-weekly" onclick="nav('weekly')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    週間計画
+  </div>
+  <div class="bottom-nav-item" id="bnav-calendar" onclick="nav('calendar')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    カレンダー
+  </div>
+</nav>
+
+</div><!-- /app -->
+
+<!-- 科目選択 -->
+<div class="overlay" id="modal-step1">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">① 科目を選択</div>
+    <div class="subj-picker" id="subj-picker"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-step1')">キャンセル</button>
+      <button class="btn btn-primary" onclick="goStep2()">次へ →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 参考書登録 -->
+<div class="overlay" id="modal-book">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="book-mtitle">② 参考書の情報を入力</div>
+    <input type="hidden" id="book-id">
+    <div class="form-group"><label>科目</label><div id="book-subj-disp" style="padding:4px 0;font-size:14px;font-weight:600;"></div></div>
+    <div class="form-group"><label>書名</label><input id="book-name" placeholder="例：英文法・語法 BEST 1000"></div>
+    <div class="form-row">
+      <div class="form-group"><label>ステータス</label><select id="book-status"><option>未着手</option><option>進行中</option><option>完了</option></select></div>
+      <div class="form-group"><label>優先度</label><select id="book-prio"><option>高</option><option>中</option><option>低</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>総ページ数</label><input type="number" id="book-pages" inputmode="numeric"></div>
+      <div class="form-group"><label>周回数</label><input type="number" id="book-laps" value="1" min="1" inputmode="numeric"></div>
+    </div>
+    <div class="form-group"><label>目標完了日</label><input type="date" id="book-dl"></div>
+    <div class="form-group"><label>メモ</label><textarea id="book-memo"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-book');openModal('modal-step1')">← 戻る</button>
+      <button class="btn btn-primary" onclick="saveBook()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 週間計画 -->
+<div class="overlay" id="modal-week">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">週間計画を追加</div>
+    <div class="form-group"><label>タイトル</label><input id="wk-title" placeholder="例：第1週（6/2〜6/8）"></div>
+    <div class="form-row">
+      <div class="form-group"><label>開始日</label><input type="date" id="wk-start"></div>
+      <div class="form-group"><label>終了日</label><input type="date" id="wk-end"></div>
+    </div>
+    <div class="form-group"><label>週の目標・メモ</label><textarea id="wk-memo"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-week')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveWeek()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 科目別計画 -->
+<div class="overlay" id="modal-subj">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">科目別計画を追加</div>
+    <input type="hidden" id="subj-wkid">
+    <div class="form-group"><label>参考書</label><select id="subj-book"></select></div>
+    <div class="form-row">
+      <div class="form-group"><label>開始ページ</label><input type="number" id="subj-ps" inputmode="numeric"></div>
+      <div class="form-group"><label>終了ページ</label><input type="number" id="subj-pe" inputmode="numeric"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>1日の予定時間（h）</label><input type="number" id="subj-hours" step="0.5" placeholder="1.5" inputmode="decimal"></div>
+      <div class="form-group"><label>優先度</label><select id="subj-prio"><option>高</option><option>中</option><option>低</option></select></div>
+    </div>
+    <div class="form-group"><label>メモ</label><textarea id="subj-memo"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-subj')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveSubj()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 学習予定 -->
+<div class="overlay" id="modal-ev">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="ev-mtitle">学習予定を追加</div>
+    <input type="hidden" id="ev-id">
+    <div class="form-group"><label>日付</label><input type="date" id="ev-date"></div>
+    <div class="form-group"><label>科目別計画から選ぶ（任意）</label>
+      <select id="ev-subj-plan" onchange="fillFromPlan(this.value)">
+        <option value="">── 選択しない ──</option>
+      </select>
+    </div>
+    <div class="form-group"><label>参考書</label><select id="ev-book"></select></div>
+    <div class="form-row">
+      <div class="form-group"><label>開始時刻</label><input type="time" id="ev-start" step="300"></div>
+      <div class="form-group"><label>終了時刻</label><input type="time" id="ev-end" step="300"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>開始ページ</label><input type="number" id="ev-ps" inputmode="numeric"></div>
+      <div class="form-group"><label>終了ページ</label><input type="number" id="ev-pe" inputmode="numeric"></div>
+    </div>
+    <div class="form-group"><label>メモ</label><textarea id="ev-memo"></textarea></div>
+    <div id="hist-section">
+      <div class="sec-title">履歴から使い回す</div>
+      <div id="hist-list"></div>
+    </div>
+    <div class="form-group" style="margin-top:10px;display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="ev-save-hist" style="width:18px;height:18px;" onchange="document.getElementById('hist-name-group').style.display=this.checked?'block':'none'">
+      <label for="ev-save-hist" style="margin:0;font-size:13px;cursor:pointer;">この予定を履歴として保存</label>
+    </div>
+    <div id="hist-name-group" style="display:none;">
+      <div class="form-group"><label>テンプレート名</label><input id="hist-name" placeholder="例：英語 朝1.5h"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-ev')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveEv()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- その他の予定 -->
+<div class="overlay" id="modal-other">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="other-mtitle">その他の予定を追加</div>
+    <input type="hidden" id="other-id">
+    <div class="form-group"><label>タイトル</label><input id="other-title" placeholder="例：学校・部活・通院など"></div>
+    <div class="form-group"><label>日付</label><input type="date" id="other-date"></div>
+    <div class="form-row">
+      <div class="form-group"><label>開始時刻</label><input type="time" id="other-start" step="300"></div>
+      <div class="form-group"><label>終了時刻</label><input type="time" id="other-end" step="300"></div>
+    </div>
+    <div class="form-group"><label>メモ</label><textarea id="other-memo"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-other')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveOther()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 詳細 -->
+<div class="overlay" id="modal-evd">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="evd-title"></div>
+    <div id="evd-body"></div>
+    <div class="modal-footer" id="evd-footer"></div>
+  </div>
+</div>
+
+<script>
+const K={books:'v5_books',weeks:'v5_weeks',subjs:'v5_subjs',evs:'v5_evs',others:'v5_others',hists:'v5_hists'};
+const ld=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]');}catch(e){return[];}};
+const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+
+let books=ld(K.books),weeks=ld(K.weeks),subjs=ld(K.subjs),evs=ld(K.evs),others=ld(K.others),hists=ld(K.hists);
+let curY,curM,selDate=null,selSubj='',curWkId=null;
+const today=new Date();curY=today.getFullYear();curM=today.getMonth();
+
+const SUBJS=[
+  {name:'英語',bg:'#E6F1FB',fg:'#185FA5',br:'#378ADD'},
+  {name:'現代文',bg:'#EEEDFE',fg:'#534AB7',br:'#7F77DD'},
+  {name:'古文',bg:'#FBEAF0',fg:'#993556',br:'#D4537E'},
+  {name:'漢文',bg:'#FAECE7',fg:'#993C1D',br:'#D85A30'},
+  {name:'日本史',bg:'#FAEEDA',fg:'#854F0B',br:'#EF9F27'},
+  {name:'赤本',bg:'#FCEBEB',fg:'#A32D2D',br:'#E24B4A'},
+  {name:'共通テスト',bg:'#EAF3DE',fg:'#3B6D11',br:'#639922'},
+  {name:'その他',bg:'#F1EFE8',fg:'#5F5E5A',br:'#888780'},
+];
+const si=name=>SUBJS.find(s=>s.name===name)||SUBJS[7];
+const SUBJ_ORDER=SUBJS.map(s=>s.name);
+const subjRank=name=>{const i=SUBJ_ORDER.indexOf(name);return i<0?99:i;};
+const dstr=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const tdStr=dstr(today);
+const dur=(s,e)=>{if(!s||!e)return 0;const[sh,sm]=s.split(':').map(Number);const[eh,em]=e.split(':').map(Number);const v=(eh*60+em)-(sh*60+sm);return v<0?0:Math.round(v/6)/10;};
+const sB={未着手:'bg-gray',進行中:'bg-green',完了:'bg-blue'};
+const pB={高:'bg-coral',中:'bg-amber',低:'bg-gray'};
+const isPC=()=>window.innerWidth>=700;
+
+function nav(pg){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  ['master','weekly','calendar'].forEach(id=>{
+    const s=document.getElementById('snav-'+id);if(s)s.classList.remove('active');
+    const b=document.getElementById('bnav-'+id);if(b)b.classList.remove('active');
+  });
+  document.getElementById('page-'+pg).classList.add('active');
+  const s=document.getElementById('snav-'+pg);if(s)s.classList.add('active');
+  const b=document.getElementById('bnav-'+pg);if(b)b.classList.add('active');
+  if(pg==='master')renderBooks();
+  if(pg==='weekly'){showWkList();renderWeeks();}
+  if(pg==='calendar')renderCal();
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+/* ===== 参考書 ===== */
+function openStep1(editId){
+  selSubj='';
+  document.getElementById('book-id').value=editId||'';
+  const p=document.getElementById('subj-picker');
+  p.innerHTML=SUBJS.map(s=>`<button class="subj-btn" data-name="${s.name}" onclick="pickSubj(this,'${s.name}')">${s.name}</button>`).join('');
+  if(editId){const b=books.find(x=>x.id===editId);if(b){selSubj=b.subject;const btn=p.querySelector(`[data-name="${b.subject}"]`);if(btn)activateBtn(btn,b.subject);}}
+  openModal('modal-step1');
+}
+function pickSubj(el,name){
+  document.querySelectorAll('.subj-btn').forEach(b=>{b.classList.remove('sel');b.style.background='';b.style.color='';b.style.borderColor='';});
+  activateBtn(el,name);
+}
+function activateBtn(el,name){const s=si(name);el.classList.add('sel');el.style.background=s.bg;el.style.color=s.fg;el.style.borderColor=s.br;selSubj=name;}
+function goStep2(){
+  if(!selSubj){alert('科目を選んでください');return;}
+  const id=document.getElementById('book-id').value;
+  const b=id?books.find(x=>x.id===id):{};
+  closeModal('modal-step1');
+  document.getElementById('book-mtitle').textContent=id?'参考書を編集':'② 参考書の情報を入力';
+  const s=si(selSubj);
+  document.getElementById('book-subj-disp').innerHTML=`<span style="background:${s.bg};color:${s.fg};padding:4px 14px;border-radius:99px;font-size:13px;">${selSubj}</span>`;
+  document.getElementById('book-name').value=b.name||'';
+  document.getElementById('book-status').value=b.status||'未着手';
+  document.getElementById('book-prio').value=b.priority||'高';
+  document.getElementById('book-pages').value=b.pages||'';
+  document.getElementById('book-laps').value=b.laps||1;
+  document.getElementById('book-dl').value=b.deadline||'';
+  document.getElementById('book-memo').value=b.memo||'';
+  openModal('modal-book');
+}
+function saveBook(){
+  const id=document.getElementById('book-id').value||uid();
+  const b={id,subject:selSubj,name:document.getElementById('book-name').value,status:document.getElementById('book-status').value,priority:document.getElementById('book-prio').value,pages:+document.getElementById('book-pages').value||0,laps:+document.getElementById('book-laps').value||1,deadline:document.getElementById('book-dl').value,memo:document.getElementById('book-memo').value};
+  if(!b.name){alert('書名を入力してください');return;}
+  const i=books.findIndex(x=>x.id===id);i>=0?books[i]=b:books.push(b);
+  sv(K.books,books);closeModal('modal-book');renderBooks();
+}
+function delBook(id){
+  if(!confirm('削除しますか？'))return;
+  books=books.filter(x=>x.id!==id);sv(K.books,books);renderBooks();
+}
+function renderBooks(){
+  document.getElementById('st-total').textContent=books.length;
+  document.getElementById('st-prog').textContent=books.filter(b=>b.status==='進行中').length;
+  document.getElementById('st-done').textContent=books.filter(b=>b.status==='完了').length;
+  document.getElementById('st-yet').textContent=books.filter(b=>b.status==='未着手').length;
+  if(isPC()){
+    document.getElementById('book-cards').style.display='none';
+    document.getElementById('book-table-wrap').style.display='block';
+    const tb=document.getElementById('book-tb');
+    if(!books.length){tb.innerHTML='<tr><td colspan="8" class="empty">参考書を追加してください</td></tr>';return;}
+    tb.innerHTML='';
+    [...books].sort((a,b)=>subjRank(a.subject)-subjRank(b.subject)).forEach(b=>{
+      const s=si(b.subject);
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td style="font-weight:500;">${b.name}</td><td><span style="background:${s.bg};color:${s.fg};padding:2px 8px;border-radius:99px;font-size:11px;">${b.subject}</span></td><td><span class="badge ${sB[b.status]||'bg-gray'}">${b.status}</span></td><td><span class="badge ${pB[b.priority]||'bg-gray'}">${b.priority}</span></td><td>${b.pages?b.pages+'p':'-'}</td><td>${b.laps}周</td><td>${b.deadline||'-'}</td><td style="white-space:nowrap;"></td>`;
+      const td=tr.querySelector('td:last-child');
+      const e=document.createElement('button');e.className='btn btn-sm';e.textContent='編集';e.onclick=()=>openStep1(b.id);
+      const d=document.createElement('button');d.className='btn btn-sm btn-danger';d.style.marginLeft='4px';d.textContent='削除';d.onclick=()=>delBook(b.id);
+      td.appendChild(e);td.appendChild(d);tb.appendChild(tr);
+    });
+  } else {
+    document.getElementById('book-table-wrap').style.display='none';
+    document.getElementById('book-cards').style.display='block';
+    const el=document.getElementById('book-cards');
+    if(!books.length){el.innerHTML='<div class="empty">参考書を追加してください</div>';return;}
+    el.innerHTML='';
+    [...books].sort((a,b)=>subjRank(a.subject)-subjRank(b.subject)).forEach(b=>{
+      const s=si(b.subject);
+      const card=document.createElement('div');card.className='card';
+      card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;"><div style="font-size:14px;font-weight:600;flex:1;">${b.name}</div><span style="background:${s.bg};color:${s.fg};padding:2px 8px;border-radius:99px;font-size:11px;white-space:nowrap;">${b.subject}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"><span class="badge ${sB[b.status]||'bg-gray'}">${b.status}</span><span class="badge ${pB[b.priority]||'bg-gray'}">${b.priority}</span>${b.pages?`<span class="badge bg-gray">${b.pages}p</span>`:''}<span class="badge bg-gray">${b.laps}周</span>${b.deadline?`<span class="badge bg-gray">${b.deadline}</span>`:''}</div><div style="display:flex;gap:8px;"></div>`;
+      const btnWrap=card.querySelector('div:last-child');
+      const e=document.createElement('button');e.className='btn btn-sm';e.style.flex='1';e.textContent='編集';e.onclick=()=>openStep1(b.id);
+      const d=document.createElement('button');d.className='btn btn-sm btn-danger';d.style.flex='1';d.textContent='削除';d.onclick=()=>delBook(b.id);
+      btnWrap.appendChild(e);btnWrap.appendChild(d);el.appendChild(card);
+    });
+  }
+}
+
+/* ===== 週間計画 ===== */
+function saveWeek(){
+  const w={id:uid(),title:document.getElementById('wk-title').value,start:document.getElementById('wk-start').value,end:document.getElementById('wk-end').value,memo:document.getElementById('wk-memo').value};
+  if(!w.title){alert('タイトルを入力してください');return;}
+  weeks.push(w);sv(K.weeks,weeks);
+  ['wk-title','wk-start','wk-end','wk-memo'].forEach(i=>document.getElementById(i).value='');
+  closeModal('modal-week');renderWeeks();
+}
+function renderWeeks(){
+  const el=document.getElementById('wk-cards');
+  if(!weeks.length){el.innerHTML='<div class="empty">週間計画を追加してください</div>';return;}
+  el.innerHTML='';
+  [...weeks].reverse().forEach(w=>{
+    const ss=subjs.filter(s=>s.wkId===w.id);
+    const th=ss.reduce((a,s)=>a+(+s.hours||0),0);
+    const card=document.createElement('div');card.className='card';
+    card.innerHTML=`<div class="card-title">${w.title}</div><div class="card-meta"><span>${w.start||''}${w.end?' 〜 '+w.end:''}</span><span>${ss.length}科目</span><span>1日計${th}h</span></div>${w.memo?`<div style="font-size:12px;color:#aaa;margin-top:4px;">${w.memo}</div>`:''}`;
+    card.onclick=()=>showWkDetail(w.id);
+    el.appendChild(card);
+  });
+}
+function showWkList(){document.getElementById('wk-list-view').style.display='block';document.getElementById('wk-detail-view').style.display='none';curWkId=null;}
+function showWkDetail(id){
+  curWkId=id;const w=weeks.find(x=>x.id===id);if(!w)return;
+  document.getElementById('wk-list-view').style.display='none';
+  document.getElementById('wk-detail-view').style.display='block';
+  document.getElementById('wk-dtitle').textContent=w.title;
+  document.getElementById('wk-dmeta').textContent=(w.start||'')+(w.end?' 〜 '+w.end:'')+(w.memo?' ｜ '+w.memo:'');
+  renderSubjs(id);
+}
+function openAddSubj(){
+  document.getElementById('subj-wkid').value=curWkId;
+  const sel=document.getElementById('subj-book');
+  sel.innerHTML=books.length?books.map(b=>`<option value="${b.id}">${b.name}</option>`).join(''):'<option>（参考書を先に登録してください）</option>';
+  ['subj-ps','subj-pe','subj-hours','subj-memo'].forEach(i=>document.getElementById(i).value='');
+  openModal('modal-subj');
+}
+function saveSubj(){
+  const s={id:uid(),wkId:document.getElementById('subj-wkid').value,bookId:document.getElementById('subj-book').value,ps:+document.getElementById('subj-ps').value||0,pe:+document.getElementById('subj-pe').value||0,hours:+document.getElementById('subj-hours').value||0,priority:document.getElementById('subj-prio').value,memo:document.getElementById('subj-memo').value};
+  subjs.push(s);sv(K.subjs,subjs);closeModal('modal-subj');renderSubjs(curWkId);
+}
+function delSubj(id){
+  if(!confirm('削除しますか？'))return;
+  subjs=subjs.filter(x=>x.id!==id);sv(K.subjs,subjs);renderSubjs(curWkId);
+}
+function renderSubjs(wid){
+  const ss=subjs.filter(s=>s.wkId===wid);
+  const th=ss.reduce((a,s)=>a+(+s.hours||0),0);
+  const tp=ss.reduce((a,s)=>a+(s.pe>s.ps?Math.round((s.pe-s.ps+1)/7):0),0);
+  document.getElementById('wk-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">科目数</div><div class="stat-val">${ss.length}</div></div>
+    <div class="stat-card"><div class="stat-label">1日合計ページ</div><div class="stat-val">${tp}<span class="stat-unit">p</span></div></div>
+    <div class="stat-card"><div class="stat-label">1日合計時間</div><div class="stat-val">${th}<span class="stat-unit">h</span></div></div>
+    <div class="stat-card"><div class="stat-label">週合計時間</div><div class="stat-val">${Math.round(th*7*10)/10}<span class="stat-unit">h</span></div></div>`;
+  const el=document.getElementById('subj-list');
+  if(!ss.length){el.innerHTML='<div class="empty">科目を追加してください</div>';return;}
+  el.innerHTML='';
+  [...ss].sort((a,b)=>{const ba=books.find(x=>x.id===a.bookId);const bb=books.find(x=>x.id===b.bookId);return subjRank(ba?ba.subject:'その他')-subjRank(bb?bb.subject:'その他');}).forEach(s=>{
+    const b=books.find(x=>x.id===s.bookId);
+    const sInf=si(b?b.subject:'その他');
+    const usedH=evs.filter(e=>e.subjId===s.id).reduce((a,e)=>a+dur(e.start,e.end),0);
+    const totalH=s.hours*7;
+    const pct=totalH>0?Math.min(100,Math.round(usedH/totalH*100)):0;
+    const ppd=s.pe>s.ps?Math.round((s.pe-s.ps+1)/7):0;
+    const row=document.createElement('div');row.className='subj-row';
+    const info=document.createElement('div');info.className='subj-info';
+    info.innerHTML=`
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
+        <span style="font-size:13px;font-weight:600;">${b?b.name:'不明'}</span>
+        <span class="badge ${pB[s.priority]||'bg-gray'}" style="font-size:10px;">${s.priority}</span>
+        <span style="background:${sInf.bg};color:${sInf.fg};font-size:10px;padding:1px 7px;border-radius:99px;">${b?b.subject:''}</span>
+      </div>
+      <div style="font-size:12px;color:#888;">p.${s.ps}〜${s.pe} ｜ ${ppd}p/日 ｜ ${s.hours}h/日 ｜ 消化${Math.round(usedH*10)/10}h</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div style="font-size:11px;color:#aaa;margin-top:3px;">${pct}% 消化（残${Math.round((totalH-usedH)*10)/10}h）</div>`;
+    const btn=document.createElement('button');btn.className='btn btn-sm btn-danger';btn.textContent='削除';btn.style.flexShrink='0';
+    btn.onclick=()=>delSubj(s.id);
+    row.appendChild(info);row.appendChild(btn);el.appendChild(row);
+  });
+}
+
+/* ===== カレンダー ===== */
+function chMonth(d){curM+=d;if(curM>11){curM=0;curY++;}if(curM<0){curM=11;curY--;}renderCal();}
+function goToday(){curY=today.getFullYear();curM=today.getMonth();renderCal();}
+function renderCal(){
+  const ms=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  document.getElementById('cal-title').textContent=`${curY}年 ${ms[curM]}`;
+  const first=new Date(curY,curM,1),last=new Date(curY,curM+1,0),sd=first.getDay();
+  const grid=document.getElementById('cal-grid');grid.innerHTML='';
+  const mkCell=(date,other)=>{
+    const ds=dstr(date);
+    const de=[...evs.filter(e=>e.date===ds),...others.filter(e=>e.date===ds)].sort((a,b)=>a.start.localeCompare(b.start));
+    const cell=document.createElement('div');
+    cell.className='cal-day'+(other?' other':'')+(ds===tdStr?' today':'')+(ds===selDate?' selected':'');
+    const dn=document.createElement('div');dn.className='cal-date-num'+(ds===tdStr?' td':'');dn.textContent=date.getDate();cell.appendChild(dn);
+    de.slice(0,2).forEach(ev=>{
+      const isO=!!ev.title;
+      const b=isO?null:books.find(x=>x.id===ev.bookId);
+      const s=isO?{bg:'#F1EFE8',fg:'#5F5E5A'}:si(b?b.subject:'その他');
+      const el2=document.createElement('div');el2.className='cal-ev';
+      el2.style.background=s.bg;el2.style.color=s.fg;
+      el2.textContent=`${ev.start} ${isO?ev.title:(b?b.name:'')}`;
+      el2.onclick=e=>{e.stopPropagation();isO?viewOther(ev.id):viewEv(ev.id);};
+      cell.appendChild(el2);
+    });
+    if(de.length>2){const m=document.createElement('div');m.style.cssText='font-size:9px;color:#aaa;padding:1px 2px;';m.textContent=`+${de.length-2}件`;cell.appendChild(m);}
+    cell.onclick=()=>{selDate=ds;showDayPanel(ds);renderCal();};
+    return cell;
+  };
+  for(let i=0;i<sd;i++){const d=new Date(curY,curM,-(sd-1-i));grid.appendChild(mkCell(d,true));}
+  for(let d=1;d<=last.getDate();d++)grid.appendChild(mkCell(new Date(curY,curM,d),false));
+  const rem=(7-((sd+last.getDate())%7))%7;
+  for(let i=1;i<=rem;i++)grid.appendChild(mkCell(new Date(curY,curM+1,i),true));
+  if(selDate)showDayPanel(selDate);else document.getElementById('day-panel').style.display='none';
+}
+function showDayPanel(ds){
+  const de=evs.filter(e=>e.date===ds);
+  const do2=others.filter(e=>e.date===ds);
+  const all=[...de.map(e=>({...e,_t:'study'})),...do2.map(e=>({...e,_t:'other'}))].sort((a,b)=>a.start.localeCompare(b.start));
+  const[y,m,d]=ds.split('-');
+  const dow=['日','月','火','水','木','金','土'][new Date(+y,+m-1,+d).getDay()];
+  const totalH=de.reduce((a,e)=>a+dur(e.start,e.end),0);
+  const panel=document.getElementById('day-panel');panel.style.display='block';panel.innerHTML='';
+  const wrap=document.createElement('div');wrap.className='day-panel';
+  const hdr=document.createElement('div');hdr.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;';
+  const titleEl=document.createElement('div');titleEl.style.cssText='font-size:14px;font-weight:600;';
+  titleEl.textContent=`${y}/${m}/${d}（${dow}）`;
+  if(totalH>0){const sub=document.createElement('span');sub.style.cssText='font-size:12px;color:#888;font-weight:400;margin-left:6px;';sub.textContent=`学習 計${Math.round(totalH*10)/10}h`;titleEl.appendChild(sub);}
+  const btnWrap=document.createElement('div');btnWrap.style.cssText='display:flex;gap:6px;flex-shrink:0;';
+  const bO=document.createElement('button');bO.className='btn btn-sm';bO.textContent='+ その他';bO.onclick=()=>openOtherModal(ds,null);
+  const bS=document.createElement('button');bS.className='btn btn-sm btn-primary';bS.textContent='+ 学習';bS.onclick=()=>openEvModal(ds,null);
+  btnWrap.appendChild(bO);btnWrap.appendChild(bS);hdr.appendChild(titleEl);hdr.appendChild(btnWrap);wrap.appendChild(hdr);
+  if(!all.length){const em=document.createElement('div');em.style.cssText='text-align:center;padding:16px;color:#aaa;font-size:13px;';em.textContent='この日の予定はありません';wrap.appendChild(em);}
+  else all.forEach(ev=>{
+    const row=document.createElement('div');row.className='ev-row';
+    if(ev._t==='other'){
+      row.style.borderLeftColor='#888780';
+      row.innerHTML=`<div class="ev-time">${ev.start}〜${ev.end}</div><div style="flex:1;min-width:0;"><div class="ev-name">${ev.title}</div>${ev.memo?`<div class="ev-meta">${ev.memo}</div>`:''}</div><span style="background:#F1EFE8;color:#5F5E5A;font-size:11px;padding:2px 7px;border-radius:99px;white-space:nowrap;">その他</span>`;
+      row.onclick=()=>viewOther(ev.id);
+    }else{
+      const b=books.find(x=>x.id===ev.bookId);const s=si(b?b.subject:'その他');
+      const subj=ev.subjId?subjs.find(x=>x.id===ev.subjId):null;
+      const usedH=subj?evs.filter(e=>e.subjId===ev.subjId).reduce((a,e)=>a+dur(e.start,e.end),0):0;
+      const remH=subj?Math.round((subj.hours*7-usedH)*10)/10:null;
+      row.style.borderLeftColor=s.br;
+      row.innerHTML=`<div class="ev-time">${ev.start}〜${ev.end}<div style="font-size:10px;color:#aaa;">${Math.round(dur(ev.start,ev.end)*10)/10}h</div></div><div style="flex:1;min-width:0;"><div class="ev-name">${b?b.name:'不明'}</div><div class="ev-meta">${ev.ps&&ev.pe?`p.${ev.ps}〜${ev.pe}`:''}${subj?` ｜ 残${remH}h`:''}${ev.memo?' ｜ '+ev.memo:''}</div></div><span style="background:${s.bg};color:${s.fg};font-size:11px;padding:2px 7px;border-radius:99px;white-space:nowrap;">${b?b.subject:''}</span>`;
+      row.onclick=()=>viewEv(ev.id);
+    }
+    wrap.appendChild(row);
+  });
+  panel.appendChild(wrap);
+}
+
+function openEvModal(date,id){
+  document.getElementById('ev-id').value=id||'';
+  document.getElementById('ev-mtitle').textContent=id?'学習予定を編集':'学習予定を追加';
+  const ev=id?evs.find(x=>x.id===id):{};
+  document.getElementById('ev-date').value=ev.date||date||tdStr;
+  document.getElementById('ev-start').value=ev.start||'09:00';
+  document.getElementById('ev-end').value=ev.end||'10:30';
+  document.getElementById('ev-ps').value=ev.ps||'';
+  document.getElementById('ev-pe').value=ev.pe||'';
+  document.getElementById('ev-memo').value=ev.memo||'';
+  document.getElementById('ev-save-hist').checked=false;
+  document.getElementById('hist-name-group').style.display='none';
+  document.getElementById('hist-name').value='';
+  const bsel=document.getElementById('ev-book');
+  bsel.innerHTML=books.length?books.map(b=>`<option value="${b.id}">${b.name}</option>`).join(''):'<option value="">（参考書を登録してください）</option>';
+  if(ev.bookId)bsel.value=ev.bookId;
+  const psel=document.getElementById('ev-subj-plan');
+  const today2=new Date();today2.setHours(0,0,0,0);
+  const activeSubjs=subjs.filter(s=>{
+    const w=weeks.find(x=>x.id===s.wkId);
+    if(!w||!w.end)return true;
+    const endDate=new Date(w.end);endDate.setHours(23,59,59,999);
+    return endDate>=today2;
+  });
+  psel.innerHTML='<option value="">── 選択しない ──</option>'+activeSubjs.map(s=>{const b=books.find(x=>x.id===s.bookId);const w=weeks.find(x=>x.id===s.wkId);return`<option value="${s.id}">${w?w.title:''} / ${b?b.name:''} (${s.hours}h/日)</option>`;}).join('');
+  if(ev.subjId)psel.value=ev.subjId;
+  renderHistList();closeModal('modal-evd');openModal('modal-ev');
+}
+function fillFromPlan(sid){
+  if(!sid)return;const s=subjs.find(x=>x.id===sid);if(!s)return;
+  document.getElementById('ev-book').value=s.bookId;
+  document.getElementById('ev-ps').value=s.ps||'';
+  document.getElementById('ev-pe').value=s.pe||'';
+}
+function renderHistList(){
+  const el=document.getElementById('hist-list');
+  if(!hists.length){el.innerHTML='<div style="font-size:12px;color:#aaa;padding:4px 0;">まだ履歴がありません</div>';return;}
+  el.innerHTML='';
+  hists.forEach(h=>{
+    const b=books.find(x=>x.id===h.bookId);
+    const card=document.createElement('div');card.className='hist-card';
+    const nr=document.createElement('div');nr.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;';
+    const ne=document.createElement('div');ne.style.cssText='font-size:13px;font-weight:600;';ne.textContent=h.name;
+    const db=document.createElement('button');db.className='btn btn-sm btn-danger';db.textContent='削除';
+    db.onclick=e=>{e.stopPropagation();delHist(h.id);};
+    nr.appendChild(ne);nr.appendChild(db);
+    const me=document.createElement('div');me.style.cssText='font-size:12px;color:#888;';
+    me.textContent=`${b?b.name:''} ｜ ${h.start}〜${h.end}（${Math.round(dur(h.start,h.end)*10)/10}h）${h.ps&&h.pe?` ｜ p.${h.ps}〜${h.pe}`:''}`;
+    card.appendChild(nr);card.appendChild(me);card.onclick=()=>applyHist(h.id);el.appendChild(card);
+  });
+}
+function applyHist(id){
+  const h=hists.find(x=>x.id===id);if(!h)return;
+  document.getElementById('ev-book').value=h.bookId;
+  document.getElementById('ev-start').value=h.start;
+  document.getElementById('ev-end').value=h.end;
+  document.getElementById('ev-ps').value=h.ps||'';
+  document.getElementById('ev-pe').value=h.pe||'';
+  document.getElementById('ev-memo').value=h.memo||'';
+}
+function delHist(id){hists=hists.filter(x=>x.id!==id);sv(K.hists,hists);renderHistList();}
+function saveEv(){
+  const id=document.getElementById('ev-id').value||uid();
+  const ev={id,date:document.getElementById('ev-date').value,bookId:document.getElementById('ev-book').value,subjId:document.getElementById('ev-subj-plan').value||'',start:document.getElementById('ev-start').value,end:document.getElementById('ev-end').value,ps:+document.getElementById('ev-ps').value||0,pe:+document.getElementById('ev-pe').value||0,memo:document.getElementById('ev-memo').value};
+  if(!ev.date||!ev.start||!ev.end){alert('日付と時刻を入力してください');return;}
+  if(ev.subjId){
+    const s=subjs.find(x=>x.id===ev.subjId);
+    if(s){const used=evs.filter(e=>e.subjId===ev.subjId&&e.id!==id).reduce((a,e)=>a+dur(e.start,e.end),0)+dur(ev.start,ev.end);const totalH=s.hours*7;if(used>totalH+0.01&&!confirm(`週の予定時間（${totalH}h）を超えます（合計${Math.round(used*10)/10}h）。保存しますか？`))return;}
+  }
+  const i=evs.findIndex(x=>x.id===id);i>=0?evs[i]=ev:evs.push(ev);sv(K.evs,evs);
+  if(document.getElementById('ev-save-hist').checked){
+    const hn=document.getElementById('hist-name').value||'テンプレート';
+    hists.push({id:uid(),name:hn,bookId:ev.bookId,start:ev.start,end:ev.end,ps:ev.ps,pe:ev.pe,memo:ev.memo});sv(K.hists,hists);
+  }
+  closeModal('modal-ev');selDate=ev.date;renderCal();
+}
+function viewEv(id){
+  const ev=evs.find(x=>x.id===id);if(!ev)return;
+  const b=books.find(x=>x.id===ev.bookId);const s=si(b?b.subject:'その他');
+  const subj=ev.subjId?subjs.find(x=>x.id===ev.subjId):null;
+  const w=subj?weeks.find(x=>x.id===subj.wkId):null;
+  document.getElementById('evd-title').textContent=b?b.name:'学習予定';
+  document.getElementById('evd-body').innerHTML=`
+    <div style="margin-bottom:12px;"><span style="background:${s.bg};color:${s.fg};padding:3px 12px;border-radius:99px;font-size:12px;">${b?b.subject:''}</span>${w?` <span style="font-size:12px;color:#888;margin-left:6px;">${w.title}</span>`:''}</div>
+    <div style="background:#f9f9f7;border-radius:10px;padding:12px 14px;font-size:13px;">
+      <div style="display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid rgba(0,0,0,0.06);"><span style="min-width:70px;color:#888;">日付</span><span>${ev.date}</span></div>
+      <div style="display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid rgba(0,0,0,0.06);"><span style="min-width:70px;color:#888;">時間</span><span>${ev.start}〜${ev.end}（${Math.round(dur(ev.start,ev.end)*10)/10}h）</span></div>
+      ${ev.ps&&ev.pe?`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid rgba(0,0,0,0.06);"><span style="min-width:70px;color:#888;">ページ</span><span>p.${ev.ps}〜${ev.pe}</span></div>`:''}
+      ${ev.memo?`<div style="display:flex;gap:8px;padding:5px 0;"><span style="min-width:70px;color:#888;">メモ</span><span style="white-space:pre-wrap;">${ev.memo}</span></div>`:''}
+    </div>`;
+  const footer=document.getElementById('evd-footer');footer.innerHTML='';
+  const dBtn=document.createElement('button');dBtn.className='btn btn-danger btn-sm';dBtn.textContent='削除';
+  dBtn.onclick=()=>{if(!confirm('削除しますか？'))return;evs=evs.filter(x=>x.id!==id);sv(K.evs,evs);closeModal('modal-evd');selDate=ev.date;renderCal();};
+  const eBtn=document.createElement('button');eBtn.className='btn btn-sm';eBtn.textContent='編集';eBtn.onclick=()=>openEvModal(ev.date,id);
+  const cBtn=document.createElement('button');cBtn.className='btn';cBtn.textContent='閉じる';cBtn.onclick=()=>closeModal('modal-evd');
+  footer.appendChild(dBtn);footer.appendChild(eBtn);footer.appendChild(cBtn);
+  openModal('modal-evd');
+}
+function openOtherModal(date,id){
+  document.getElementById('other-id').value=id||'';
+  document.getElementById('other-mtitle').textContent=id?'その他の予定を編集':'その他の予定を追加';
+  const ev=id?others.find(x=>x.id===id):{};
+  document.getElementById('other-title').value=ev.title||'';
+  document.getElementById('other-date').value=ev.date||date||tdStr;
+  document.getElementById('other-start').value=ev.start||'08:00';
+  document.getElementById('other-end').value=ev.end||'09:00';
+  document.getElementById('other-memo').value=ev.memo||'';
+  closeModal('modal-evd');openModal('modal-other');
+}
+function saveOther(){
+  const id=document.getElementById('other-id').value||uid();
+  const ev={id,title:document.getElementById('other-title').value,date:document.getElementById('other-date').value,start:document.getElementById('other-start').value,end:document.getElementById('other-end').value,memo:document.getElementById('other-memo').value};
+  if(!ev.title||!ev.date){alert('タイトルと日付を入力してください');return;}
+  const i=others.findIndex(x=>x.id===id);i>=0?others[i]=ev:others.push(ev);
+  sv(K.others,others);closeModal('modal-other');selDate=ev.date;renderCal();
+}
+function viewOther(id){
+  const ev=others.find(x=>x.id===id);if(!ev)return;
+  document.getElementById('evd-title').textContent=ev.title;
+  document.getElementById('evd-body').innerHTML=`
+    <div style="background:#f9f9f7;border-radius:10px;padding:12px 14px;font-size:13px;">
+      <div style="display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid rgba(0,0,0,0.06);"><span style="min-width:70px;color:#888;">日付</span><span>${ev.date}</span></div>
+      <div style="display:flex;gap:8px;padding:5px 0;${ev.memo?'border-bottom:0.5px solid rgba(0,0,0,0.06);':''}"><span style="min-width:70px;color:#888;">時間</span><span>${ev.start}〜${ev.end}（${Math.round(dur(ev.start,ev.end)*10)/10}h）</span></div>
+      ${ev.memo?`<div style="display:flex;gap:8px;padding:5px 0;"><span style="min-width:70px;color:#888;">メモ</span><span style="white-space:pre-wrap;">${ev.memo}</span></div>`:''}
+    </div>`;
+  const footer=document.getElementById('evd-footer');footer.innerHTML='';
+  const dBtn=document.createElement('button');dBtn.className='btn btn-danger btn-sm';dBtn.textContent='削除';
+  dBtn.onclick=()=>{if(!confirm('削除しますか？'))return;others=others.filter(x=>x.id!==id);sv(K.others,others);closeModal('modal-evd');selDate=ev.date;renderCal();};
+  const eBtn=document.createElement('button');eBtn.className='btn btn-sm';eBtn.textContent='編集';eBtn.onclick=()=>openOtherModal(ev.date,id);
+  const cBtn=document.createElement('button');cBtn.className='btn';cBtn.textContent='閉じる';cBtn.onclick=()=>closeModal('modal-evd');
+  footer.appendChild(dBtn);footer.appendChild(eBtn);footer.appendChild(cBtn);
+  openModal('modal-evd');
+}
+
+// 画面サイズ変更時に再描画
+window.addEventListener('resize',()=>{
+  const pg=document.querySelector('.page.active');
+  if(pg&&pg.id==='page-master')renderBooks();
+});
+
+renderBooks();
+</script>
+</body>
+</html>
