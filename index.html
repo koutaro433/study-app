@@ -7,17 +7,17 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f3;}
-
+ 
 /* ===== レイアウト ===== */
 .app{display:flex;flex-direction:column;min-height:100vh;}
 .main{flex:1;padding:16px;max-width:900px;margin:0 auto;width:100%;}
-
+ 
 /* ===== ボトムナビ（スマホ） ===== */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:0.5px solid rgba(0,0,0,0.12);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom);}
 .bottom-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 6px;cursor:pointer;color:#999;font-size:10px;gap:3px;transition:color .15s;}
 .bottom-nav-item.active{color:#1D9E75;}
 .bottom-nav-item svg{width:22px;height:22px;}
-
+ 
 /* PC用サイドバー */
 @media(min-width:700px){
   .app{flex-direction:row;height:100vh;overflow:hidden;}
@@ -27,34 +27,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 }
 .sidebar{display:none;}
 @media(min-width:700px){.sidebar{display:flex;}}
-
+ 
 .nav-item{padding:9px 16px;cursor:pointer;font-size:13px;color:#666;display:flex;align-items:center;gap:8px;transition:background .1s;}
 .nav-item:hover{background:#f5f5f3;}
 .nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:500;border-right:2px solid #1D9E75;}
 .nav-section{font-size:11px;color:#aaa;padding:12px 16px 4px;letter-spacing:.05em;}
-
+ 
 /* ===== ページ ===== */
 .page{display:none;padding-bottom:80px;}
 .page.active{display:block;}
 @media(min-width:700px){.page{padding-bottom:0;}}
-
+ 
 /* ===== 共通 ===== */
 .page-title{font-size:18px;font-weight:600;margin-bottom:16px;}
 @media(min-width:700px){.page-title{font-size:20px;}}
-
+ 
 .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap;}
-
+ 
 .btn{padding:8px 14px;border-radius:10px;border:0.5px solid #ddd;background:#fff;color:#1a1a1a;font-size:13px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;}
 .btn:active{opacity:.7;}
 .btn-primary{background:#1D9E75;color:#fff;border-color:#1D9E75;}
 .btn-danger{color:#A32D2D;border-color:#F09595;background:#fff;}
 .btn-sm{padding:5px 10px;font-size:12px;}
-
+ 
 /* ===== カード ===== */
 .card{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;border:0.5px solid rgba(0,0,0,0.08);}
 .card-title{font-size:14px;font-weight:600;margin-bottom:5px;}
 .card-meta{font-size:12px;color:#888;display:flex;gap:10px;flex-wrap:wrap;}
-
+ 
 /* ===== stat ===== */
 .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;}
 @media(min-width:500px){.stat-grid{grid-template-columns:repeat(4,1fr);}}
@@ -62,7 +62,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .stat-label{font-size:11px;color:#999;margin-bottom:3px;}
 .stat-val{font-size:20px;font-weight:600;}
 .stat-unit{font-size:11px;color:#888;margin-left:2px;}
-
+ 
 /* ===== テーブル（PC向け） ===== */
 .table-wrap{overflow-x:auto;border-radius:12px;border:0.5px solid rgba(0,0,0,0.08);background:#fff;}
 table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px;}
@@ -70,14 +70,14 @@ th{text-align:left;padding:10px 12px;font-weight:500;font-size:12px;color:#888;b
 td{padding:10px 12px;border-bottom:0.5px solid rgba(0,0,0,0.06);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#fafaf9;}
-
+ 
 /* ===== フォーム ===== */
 .form-group{margin-bottom:14px;}
 .form-group label{display:block;font-size:12px;color:#888;margin-bottom:5px;font-weight:500;}
 .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:0.5px solid #ddd;border-radius:10px;background:#fff;color:#1a1a1a;font-size:14px;font-family:inherit;-webkit-appearance:none;appearance:none;}
 .form-group textarea{resize:vertical;min-height:60px;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-
+ 
 /* ===== モーダル ===== */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center;}
 .overlay.open{display:flex;}
@@ -88,12 +88,12 @@ tr:hover td{background:#fafaf9;}
 @media(min-width:600px){.modal-handle{display:none;}}
 .modal-title{font-size:16px;font-weight:600;margin-bottom:16px;}
 .modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
-
+ 
 /* ===== 科目ピッカー ===== */
 .subj-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
 .subj-btn{padding:12px 4px;border-radius:10px;border:1.5px solid #eee;background:#f9f9f7;color:#666;font-size:12px;cursor:pointer;text-align:center;font-family:inherit;-webkit-tap-highlight-color:transparent;}
 .subj-btn.sel{font-weight:600;}
-
+ 
 /* ===== 週間計画 ===== */
 .subj-row{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:#fff;border-radius:14px;margin-bottom:8px;border:0.5px solid rgba(0,0,0,0.08);}
 .subj-info{flex:1;min-width:0;}
@@ -101,7 +101,7 @@ tr:hover td{background:#fafaf9;}
 .progress-fill{height:4px;background:#1D9E75;border-radius:2px;}
 .detail-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
 .back-btn{font-size:13px;color:#888;cursor:pointer;padding:6px 10px;border-radius:8px;background:#f5f5f3;-webkit-tap-highlight-color:transparent;}
-
+ 
 /* ===== カレンダー ===== */
 .cal-nav{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .cal-nav-title{font-size:15px;font-weight:600;flex:1;text-align:center;}
@@ -124,11 +124,11 @@ tr:hover td{background:#fafaf9;}
 @media(min-width:500px){.ev-time{min-width:96px;}}
 .ev-name{font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .ev-meta{font-size:11px;color:#aaa;}
-
+ 
 /* ===== 履歴 ===== */
 .hist-card{background:#f9f9f7;border:0.5px solid rgba(0,0,0,0.08);border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .hist-card:active{opacity:.7;}
-
+ 
 /* ===== バッジ ===== */
 .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;white-space:nowrap;}
 .bg-green{background:#E1F5EE;color:#0F6E56;}
@@ -137,13 +137,13 @@ tr:hover td{background:#fafaf9;}
 .bg-coral{background:#FAECE7;color:#993C1D;}
 .bg-amber{background:#FAEEDA;color:#854F0B;}
 .empty{text-align:center;padding:32px;color:#aaa;font-size:13px;}
-
+ 
 .sec-title{font-size:11px;font-weight:600;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin:14px 0 8px;}
 </style>
 </head>
 <body>
 <div class="app">
-
+ 
 <!-- PC用サイドバー -->
 <div class="sidebar">
   <div style="padding:16px 16px 10px;font-size:15px;font-weight:700;">📚 学習管理</div>
@@ -153,10 +153,10 @@ tr:hover td{background:#fafaf9;}
   <div class="nav-item" id="snav-weekly" onclick="nav('weekly')">📋 週間計画</div>
   <div class="nav-item" id="snav-calendar" onclick="nav('calendar')">📅 カレンダー</div>
 </div>
-
+ 
 <!-- メインコンテンツ -->
 <div class="main">
-
+ 
 <!-- 参考書 -->
 <div class="page active" id="page-master">
   <div class="toolbar">
@@ -177,7 +177,7 @@ tr:hover td{background:#fafaf9;}
     <tbody id="book-tb"></tbody></table>
   </div>
 </div>
-
+ 
 <!-- 週間計画 -->
 <div class="page" id="page-weekly">
   <div id="wk-list-view">
@@ -199,7 +199,7 @@ tr:hover td{background:#fafaf9;}
     <div id="subj-list"></div>
   </div>
 </div>
-
+ 
 <!-- カレンダー -->
 <div class="page" id="page-calendar">
   <div class="toolbar" style="margin-bottom:8px;">
@@ -224,9 +224,9 @@ tr:hover td{background:#fafaf9;}
   <div class="cal-grid" id="cal-grid"></div>
   <div id="day-panel" style="display:none;"></div>
 </div>
-
+ 
 </div><!-- /main -->
-
+ 
 <!-- スマホ ボトムナビ -->
 <nav class="bottom-nav">
   <div class="bottom-nav-item active" id="bnav-master" onclick="nav('master')">
@@ -242,9 +242,9 @@ tr:hover td{background:#fafaf9;}
     カレンダー
   </div>
 </nav>
-
+ 
 </div><!-- /app -->
-
+ 
 <!-- 科目選択 -->
 <div class="overlay" id="modal-step1">
   <div class="modal">
@@ -257,7 +257,7 @@ tr:hover td{background:#fafaf9;}
     </div>
   </div>
 </div>
-
+ 
 <!-- 参考書登録 -->
 <div class="overlay" id="modal-book">
   <div class="modal">
@@ -282,7 +282,7 @@ tr:hover td{background:#fafaf9;}
     </div>
   </div>
 </div>
-
+ 
 <!-- 週間計画 -->
 <div class="overlay" id="modal-week">
   <div class="modal">
@@ -300,7 +300,7 @@ tr:hover td{background:#fafaf9;}
     </div>
   </div>
 </div>
-
+ 
 <!-- 科目別計画 -->
 <div class="overlay" id="modal-subj">
   <div class="modal">
@@ -323,7 +323,7 @@ tr:hover td{background:#fafaf9;}
     </div>
   </div>
 </div>
-
+ 
 <!-- 学習予定 -->
 <div class="overlay" id="modal-ev">
   <div class="modal">
@@ -363,7 +363,7 @@ tr:hover td{background:#fafaf9;}
     </div>
   </div>
 </div>
-
+ 
 <!-- その他の予定 -->
 <div class="overlay" id="modal-other">
   <div class="modal">
@@ -383,7 +383,7 @@ tr:hover td{background:#fafaf9;}
     </div>
   </div>
 </div>
-
+ 
 <!-- 詳細 -->
 <div class="overlay" id="modal-evd">
   <div class="modal">
@@ -393,17 +393,17 @@ tr:hover td{background:#fafaf9;}
     <div class="modal-footer" id="evd-footer"></div>
   </div>
 </div>
-
+ 
 <script>
 const K={books:'v5_books',weeks:'v5_weeks',subjs:'v5_subjs',evs:'v5_evs',others:'v5_others',hists:'v5_hists'};
 const ld=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]');}catch(e){return[];}};
 const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-
+ 
 let books=ld(K.books),weeks=ld(K.weeks),subjs=ld(K.subjs),evs=ld(K.evs),others=ld(K.others),hists=ld(K.hists);
 let curY,curM,selDate=null,selSubj='',curWkId=null;
 const today=new Date();curY=today.getFullYear();curM=today.getMonth();
-
+ 
 const SUBJS=[
   {name:'英語',bg:'#E6F1FB',fg:'#185FA5',br:'#378ADD'},
   {name:'現代文',bg:'#EEEDFE',fg:'#534AB7',br:'#7F77DD'},
@@ -415,13 +415,15 @@ const SUBJS=[
   {name:'その他',bg:'#F1EFE8',fg:'#5F5E5A',br:'#888780'},
 ];
 const si=name=>SUBJS.find(s=>s.name===name)||SUBJS[7];
+const SUBJ_ORDER=SUBJS.map(s=>s.name);
+const subjRank=name=>{const i=SUBJ_ORDER.indexOf(name);return i<0?99:i;};
 const dstr=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const tdStr=dstr(today);
 const dur=(s,e)=>{if(!s||!e)return 0;const[sh,sm]=s.split(':').map(Number);const[eh,em]=e.split(':').map(Number);const v=(eh*60+em)-(sh*60+sm);return v<0?0:Math.round(v/6)/10;};
 const sB={未着手:'bg-gray',進行中:'bg-green',完了:'bg-blue'};
 const pB={高:'bg-coral',中:'bg-amber',低:'bg-gray'};
 const isPC=()=>window.innerWidth>=700;
-
+ 
 function nav(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   ['master','weekly','calendar'].forEach(id=>{
@@ -437,7 +439,7 @@ function nav(pg){
 }
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
-
+ 
 /* ===== 参考書 ===== */
 function openStep1(editId){
   selSubj='';
@@ -491,7 +493,7 @@ function renderBooks(){
     const tb=document.getElementById('book-tb');
     if(!books.length){tb.innerHTML='<tr><td colspan="8" class="empty">参考書を追加してください</td></tr>';return;}
     tb.innerHTML='';
-    books.forEach(b=>{
+    [...books].sort((a,b)=>subjRank(a.subject)-subjRank(b.subject)).forEach(b=>{
       const s=si(b.subject);
       const tr=document.createElement('tr');
       tr.innerHTML=`<td style="font-weight:500;">${b.name}</td><td><span style="background:${s.bg};color:${s.fg};padding:2px 8px;border-radius:99px;font-size:11px;">${b.subject}</span></td><td><span class="badge ${sB[b.status]||'bg-gray'}">${b.status}</span></td><td><span class="badge ${pB[b.priority]||'bg-gray'}">${b.priority}</span></td><td>${b.pages?b.pages+'p':'-'}</td><td>${b.laps}周</td><td>${b.deadline||'-'}</td><td style="white-space:nowrap;"></td>`;
@@ -506,7 +508,7 @@ function renderBooks(){
     const el=document.getElementById('book-cards');
     if(!books.length){el.innerHTML='<div class="empty">参考書を追加してください</div>';return;}
     el.innerHTML='';
-    books.forEach(b=>{
+    [...books].sort((a,b)=>subjRank(a.subject)-subjRank(b.subject)).forEach(b=>{
       const s=si(b.subject);
       const card=document.createElement('div');card.className='card';
       card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;"><div style="font-size:14px;font-weight:600;flex:1;">${b.name}</div><span style="background:${s.bg};color:${s.fg};padding:2px 8px;border-radius:99px;font-size:11px;white-space:nowrap;">${b.subject}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"><span class="badge ${sB[b.status]||'bg-gray'}">${b.status}</span><span class="badge ${pB[b.priority]||'bg-gray'}">${b.priority}</span>${b.pages?`<span class="badge bg-gray">${b.pages}p</span>`:''}<span class="badge bg-gray">${b.laps}周</span>${b.deadline?`<span class="badge bg-gray">${b.deadline}</span>`:''}</div><div style="display:flex;gap:8px;"></div>`;
@@ -517,7 +519,7 @@ function renderBooks(){
     });
   }
 }
-
+ 
 /* ===== 週間計画 ===== */
 function saveWeek(){
   const w={id:uid(),title:document.getElementById('wk-title').value,start:document.getElementById('wk-start').value,end:document.getElementById('wk-end').value,memo:document.getElementById('wk-memo').value};
@@ -575,7 +577,7 @@ function renderSubjs(wid){
   const el=document.getElementById('subj-list');
   if(!ss.length){el.innerHTML='<div class="empty">科目を追加してください</div>';return;}
   el.innerHTML='';
-  ss.forEach(s=>{
+  [...ss].sort((a,b)=>{const ba=books.find(x=>x.id===a.bookId);const bb=books.find(x=>x.id===b.bookId);return subjRank(ba?ba.subject:'その他')-subjRank(bb?bb.subject:'その他');}).forEach(s=>{
     const b=books.find(x=>x.id===s.bookId);
     const sInf=si(b?b.subject:'その他');
     const usedH=evs.filter(e=>e.subjId===s.id).reduce((a,e)=>a+dur(e.start,e.end),0);
@@ -598,7 +600,7 @@ function renderSubjs(wid){
     row.appendChild(info);row.appendChild(btn);el.appendChild(row);
   });
 }
-
+ 
 /* ===== カレンダー ===== */
 function chMonth(d){curM+=d;if(curM>11){curM=0;curY++;}if(curM<0){curM=11;curY--;}renderCal();}
 function goToday(){curY=today.getFullYear();curM=today.getMonth();renderCal();}
@@ -670,7 +672,7 @@ function showDayPanel(ds){
   });
   panel.appendChild(wrap);
 }
-
+ 
 function openEvModal(date,id){
   document.getElementById('ev-id').value=id||'';
   document.getElementById('ev-mtitle').textContent=id?'学習予定を編集':'学習予定を追加';
@@ -688,7 +690,14 @@ function openEvModal(date,id){
   bsel.innerHTML=books.length?books.map(b=>`<option value="${b.id}">${b.name}</option>`).join(''):'<option value="">（参考書を登録してください）</option>';
   if(ev.bookId)bsel.value=ev.bookId;
   const psel=document.getElementById('ev-subj-plan');
-  psel.innerHTML='<option value="">── 選択しない ──</option>'+subjs.map(s=>{const b=books.find(x=>x.id===s.bookId);const w=weeks.find(x=>x.id===s.wkId);return`<option value="${s.id}">${w?w.title:''} / ${b?b.name:''} (${s.hours}h/日)</option>`;}).join('');
+  const today2=new Date();today2.setHours(0,0,0,0);
+  const activeSubjs=subjs.filter(s=>{
+    const w=weeks.find(x=>x.id===s.wkId);
+    if(!w||!w.end)return true;
+    const endDate=new Date(w.end);endDate.setHours(23,59,59,999);
+    return endDate>=today2;
+  });
+  psel.innerHTML='<option value="">── 選択しない ──</option>'+activeSubjs.map(s=>{const b=books.find(x=>x.id===s.bookId);const w=weeks.find(x=>x.id===s.wkId);return`<option value="${s.id}">${w?w.title:''} / ${b?b.name:''} (${s.hours}h/日)</option>`;}).join('');
   if(ev.subjId)psel.value=ev.subjId;
   renderHistList();closeModal('modal-evd');openModal('modal-ev');
 }
@@ -797,13 +806,13 @@ function viewOther(id){
   footer.appendChild(dBtn);footer.appendChild(eBtn);footer.appendChild(cBtn);
   openModal('modal-evd');
 }
-
+ 
 // 画面サイズ変更時に再描画
 window.addEventListener('resize',()=>{
   const pg=document.querySelector('.page.active');
   if(pg&&pg.id==='page-master')renderBooks();
 });
-
+ 
 renderBooks();
 </script>
 </body>
